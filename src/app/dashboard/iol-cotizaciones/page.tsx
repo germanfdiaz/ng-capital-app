@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 // Material UI imports
-import { DataGrid, GridRowsProp, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridRowsProp, GridColDef  } from '@mui/x-data-grid';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
@@ -71,17 +71,17 @@ export default function IolCotizaciones() {
     const [ isLoading,  setIsLoading ]  = useState( true );
     const [ rows,       setRows ]       = useState<GridData[]>([]);
     const [ maxTCVenta, setMaxTCVenta ] = useState<number>(0);
+    const [ rowCompra,  setRowCompra ]  = useState({});
+    const [ rowVenta,   setRowVenta ]   = useState({});
     
-    
-    //const resData = iolServicios();
-    
+   
     //setjsonData( resData );
 
     // Obtengo datos de la api de cotizaciones
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const urlCotizaciones = 'http://ng-capital.vercel.app/iol/getCotizaciones';
+                const urlCotizaciones = 'https://ng-capital.vercel.app/iol/getCotizaciones';
                 const respuesta = await axios.get( urlCotizaciones ) ;
                 
                 if ( respuesta.status === 200) {
@@ -98,12 +98,12 @@ export default function IolCotizaciones() {
 
     // Definicion de la columnas
     const [columns, setColumns] = useState<GridColDef[]>([
-        { field: 'instrumento'     ,headerName: 'Instrumento'     ,width: 94 ,align: 'center' },
+        { field: 'instrumento'     ,headerName: 'Instrumento'     ,width: 94  ,align: 'left' },
         { field: 'empresa'         ,headerName: 'Empresa'         ,width: 180 ,align: 'left'   },
-        { field: 'tickerARS'       ,headerName: 'Ticker ARS'      ,width: 90 ,align: 'center' },
-        { field: 'tickerUSD'       ,headerName: 'Ticker USD'      ,width: 90 ,align: 'center' },
+        { field: 'tickerARS'       ,headerName: 'Ticker ARS'      ,width: 90  ,align: 'left' },
+        { field: 'tickerUSD'       ,headerName: 'Ticker USD'      ,width: 90  ,align: 'left' },
         { field: 'volumenARS'      ,headerName: 'Vol. ARS'        ,width: 110 ,align: 'right'  },
-        { field: 'volumenUSD'      ,headerName: 'Vol. USD'        ,width: 90 ,align: 'right'  },
+        { field: 'volumenUSD'      ,headerName: 'Vol. USD'        ,width: 90  ,align: 'right'  },
         { field: 'compraARScant'   ,headerName: 'Compra ARS'      ,width: 130 ,align: 'right'  },
         { field: 'ventaARScant'    ,headerName: 'Venta ARS'       ,width: 130 ,align: 'right'  },
         { field: 'compraUSDcant'   ,headerName: 'Compra USD'      ,width: 110 ,align: 'right'  },
@@ -157,12 +157,12 @@ export default function IolCotizaciones() {
                 const tcCompra            = +(ventaARS / compraUSD).toFixed(2);
                 const tcVenta             = +(compraARS / ventaUSD).toFixed(2);
                 const tcCompraARS         = +(compraARS / compraUSD).toFixed(2);
-                const compraARScant       = '(' + cantCompraARS + ') ' + compraARS;
-                const ventaARScant        = '(' + cantVentaARS + ') ' + ventaARS;
-                const compraUSDcant       = '(' + cantCompraUSD + ') ' + compraUSD;
-                const ventaUSDcant        = '(' + cantVentaUSD + ') ' + ventaUSD;
+                const compraARScant       = '(' + cantCompraARS + ') ' + compraARS.toString();
+                const ventaARScant        = '(' + cantVentaARS + ') '  + ventaARS.toString();
+                const compraUSDcant       = '(' + cantCompraUSD + ') ' + compraUSD.toString();
+                const ventaUSDcant        = '(' + cantVentaUSD + ') '  + ventaUSD.toString();
                 const rentabilidad        = '';
-                const rentabilidadMax     = '';
+                const rentabilidadMax     = +((( ( tcCompraARS / tcCompra) - 1 ) * 100).toFixed(2)).toString() + '%';
 
                 if (tcVenta > maxTCVenta) {
                     setMaxTCVenta(tcVenta);
@@ -193,7 +193,7 @@ export default function IolCotizaciones() {
             for (const elemento of newRows) {
                 //console.log('maxTCVenta: ' + maxTCVenta + ' - ' + elemento.empresa);
                 elemento.rentabilidad = +((( ( maxTCVenta / elemento.tcCompra) - 1 ) * 100).toFixed(2)).toString() + '%';
-                elemento.rentabilidadMax = +((( ( maxTCVenta / elemento.tcCompraARS) - 1 ) * 100).toFixed(2)).toString() + '%';
+                //elemento.rentabilidadMax = +((( ( maxTCVenta / elemento.tcCompraARS) - 1 ) * 100).toFixed(2)).toString() + '%';
             }
             console.log(maxTCVenta);
             if (maxTCVenta !== 0) {
@@ -216,7 +216,7 @@ export default function IolCotizaciones() {
                 //variant="outlined"
                 //style={{ maxWidth: '1340px' }} 
                 sx={ { 
-                    maxWidth: '1450px', 
+                    maxWidth: '1430px', 
                     borderRadius: '10px'
                 } }
             >
@@ -225,7 +225,7 @@ export default function IolCotizaciones() {
                     titleTypographyProps={{ variant: 'h4', fontSize: 16 }}
                     title = "COMPRA RÁPIDA"
                     subheaderTypographyProps={{ variant: 'h6', fontSize: 12 }}
-                    subheader = "Mejores cotizaciones de compra"
+                    //subheader = "Mejores cotizaciones de compra"
                     sx= {{ 
                         paddingTop:'8px',
                         paddingLeft: '18px',
@@ -236,10 +236,10 @@ export default function IolCotizaciones() {
                 <CardContent
                     sx={{
                         paddingTop: '2px',
-                        height: '210px',
+                        height: '180px',
                     }}
                 >
-                <div style={{ width: '1400px', height:'210px' }}>
+                <div style={{ width: '1400px', height:'194px' }}>
                     { isLoading ? (
                         <div style={{ textAlign: 'center', height:'100%', marginTop: '70px' }}>
                             <CircularProgress /> 
@@ -248,7 +248,18 @@ export default function IolCotizaciones() {
                     <DataGrid
                         rows = { rows }
                         columns = { columns }
-                        rowHeight = { 30 }
+                        onRowSelectionModelChange={(ids) => {
+                            const selectedRowsData = ids.map((id) => rows.find((row) => row.id === id));
+                            setRowCompra(selectedRowsData);
+                            //console.log(selectedRowsData);
+                            //console.log( { newRows[ids] } );
+                            /*const selectedIDs = new Set(ids);
+                            const selectedRowData = rows.filter((row) =>
+                              selectedIDs.has(row.id.toString())
+                            );
+                            console.log(selectedRowData);*/
+                          }}
+                        rowHeight = { 24 }
                         //padding = { 10 }
                         columnVisibilityModel={{
                             tcVenta: false,
@@ -274,7 +285,8 @@ export default function IolCotizaciones() {
                         //pageSize={5}
                         //rowsPerPageOptions={[5]}
                         checkboxSelection = { false }
-                        getRowClassName={(params) =>
+                        //onSelectionChange={handleSelectionChange}
+                        getRowClassName={(params) => // Le doy diferente color a los rows
                             params.indexRelativeToCurrentPage % 2 === 0 ? 'Mui-even' : 'Mui-odd'
                         }
                         sx={{
@@ -286,11 +298,11 @@ export default function IolCotizaciones() {
                             },
                             '& .MuiDataGrid-columnHeader': {
                                 //fontWeight: 'bold', // Pone en negrita los títulos de las cabeceras
-                                maxHeight: '30px',
+                                maxHeight: '24px',
                             },
                             '& .MuiDataGrid-footerContainer': {
                                 //fontWeight: 'bold', // Pone en negrita los títulos de las cabeceras
-                                minHeight: '30px',
+                                minHeight: '24px',
                             },
                         }}  
                     />
@@ -305,7 +317,7 @@ export default function IolCotizaciones() {
                 //variant="outlined"
                 //style={{ maxWidth: '1340px' }} 
                 sx={ { 
-                    maxWidth: '1450px', 
+                    maxWidth: '1430px', 
                     borderRadius: '10px'
                 } }
             >
@@ -325,10 +337,10 @@ export default function IolCotizaciones() {
                 <CardContent
                     sx={{
                         paddingTop: '2px',
-                        height: '210px',
+                        height: '180px',
                     }}
                 >
-                <div style={{ width: '1400px', height:'210px' }}>
+                <div style={{ width: '1400px', height:'194px' }}>
                     { isLoading ? (
                         <div style={{ textAlign: 'center', height:'100%', marginTop: '70px'}}>
                             <CircularProgress /> 
@@ -337,7 +349,7 @@ export default function IolCotizaciones() {
                     <DataGrid
                         rows = { rows }
                         columns = { columns }
-                        rowHeight = { 30 }
+                        rowHeight = { 24 }
                         //padding = { 10 }
                         columnVisibilityModel={{
                             tcCompra: false,
@@ -376,11 +388,11 @@ export default function IolCotizaciones() {
                             },
                             '& .MuiDataGrid-columnHeader': {
                                 //fontWeight: 'bold', // Pone en negrita los títulos de las cabeceras
-                                maxHeight: '30px',
+                                maxHeight: '24px',
                             },
                             '& .MuiDataGrid-footerContainer': {
                                 //fontWeight: 'bold', // Pone en negrita los títulos de las cabeceras
-                                minHeight: '30px',
+                                minHeight: '24px',
                             },
                         }}  
                     />
@@ -395,16 +407,16 @@ export default function IolCotizaciones() {
                 //variant="outlined"
                 //style={{ maxWidth: '1340px' }} 
                 sx={ { 
-                    maxWidth: '1450px', 
+                    maxWidth: '1430px', 
                     borderRadius: '10px'
                 } }
             >
                 <CardHeader
                     //style={{ margin: '8px' }}
                     titleTypographyProps={{ variant: 'h4', fontSize: 16 }}
-                    title = "COMPRA LENTA"
+                    title = "OPORTUNIDADES"
                     subheaderTypographyProps={{ variant: 'h6', fontSize: 12 }}
-                    subheader = "Mejores rentabilidad"
+                    subheader = "Mejores rentabilidades"
                     sx= {{ 
                         paddingTop:'8px',
                         paddingLeft: '18px',
@@ -415,10 +427,10 @@ export default function IolCotizaciones() {
                 <CardContent
                     sx={{
                         paddingTop: '2px',
-                        height: '210px',
+                        height: '180px',
                     }}
                 >
-                <div style={{ width: '1400px', height:'210px' }}>
+                <div style={{ width: '1400px', height:'194px' }}>
                     { isLoading ? (
                         <div style={{ textAlign: 'center', height:'100%', marginTop: '70px' }}>
                             <CircularProgress /> 
@@ -427,16 +439,27 @@ export default function IolCotizaciones() {
                     <DataGrid
                         rows = { rows }
                         columns = { columns }
-                        rowHeight = { 30 }
+                        rowHeight = { 24 }
                         //padding = { 10 }
                         columnVisibilityModel={{
                             tcCompra: false,
                             tcVenta: false,
                             rentabilidad: false,
                         }}
+                        onRowSelectionModelChange={(ids) => {
+                            const selectedRowsData = ids.map((id) => rows.find((row) => row.id === id));
+                            setRowVenta(selectedRowsData);
+                            //console.log(selectedRowsData);
+                            //console.log( { newRows[ids] } );
+                            /*const selectedIDs = new Set(ids);
+                            const selectedRowData = rows.filter((row) =>
+                              selectedIDs.has(row.id.toString())
+                            );
+                            console.log(selectedRowData);*/
+                          }}
                         sortModel = { [
                         {
-                        field: 'rentabilidadMax',
+                        field: 'tcCompraARS',//'rentabilidadMax',
                         sort: 'desc', // Orden descendente
                         },
                         ] }
@@ -465,11 +488,11 @@ export default function IolCotizaciones() {
                             },
                             '& .MuiDataGrid-columnHeader': {
                                 //fontWeight: 'bold', // Pone en negrita los títulos de las cabeceras
-                                maxHeight: '30px',
+                                maxHeight: '24px',
                             },
                             '& .MuiDataGrid-footerContainer': {
                                 //fontWeight: 'bold', // Pone en negrita los títulos de las cabeceras
-                                minHeight: '30px',
+                                minHeight: '24px',
                             },
                         }}  
                     />
