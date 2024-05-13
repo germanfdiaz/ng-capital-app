@@ -14,6 +14,7 @@ import { CircularProgress } from '@mui/material';
 //import iolServicios from './iol-servicios'
 //import CardCotizaciones from './card-cotizaciones';
 import jsonDataFixed from './cotizaciones2.json';
+import Operaciones from './operaciones';
 
 
 
@@ -98,10 +99,10 @@ export default function IolCotizaciones() {
 
     // Definicion de la columnas
     const [columns, setColumns] = useState<GridColDef[]>([
-        { field: 'instrumento'     ,headerName: 'Instrumento'     ,width: 94  ,align: 'left' },
+        { field: 'instrumento'     ,headerName: 'Instrumento'     ,width: 94  ,align: 'left'   },
         { field: 'empresa'         ,headerName: 'Empresa'         ,width: 180 ,align: 'left'   },
-        { field: 'tickerARS'       ,headerName: 'Ticker ARS'      ,width: 90  ,align: 'left' },
-        { field: 'tickerUSD'       ,headerName: 'Ticker USD'      ,width: 90  ,align: 'left' },
+        { field: 'tickerARS'       ,headerName: 'Ticker ARS'      ,width: 90  ,align: 'left'   },
+        { field: 'tickerUSD'       ,headerName: 'Ticker USD'      ,width: 90  ,align: 'left'   },
         { field: 'volumenARS'      ,headerName: 'Vol. ARS'        ,width: 110 ,align: 'right'  },
         { field: 'volumenUSD'      ,headerName: 'Vol. USD'        ,width: 90  ,align: 'right'  },
         { field: 'compraARScant'   ,headerName: 'Compra ARS'      ,width: 130 ,align: 'right'  },
@@ -119,89 +120,91 @@ export default function IolCotizaciones() {
     useEffect(() => {
         // Solo ejecuto en el caso de encontrar datos
         if (JSON.stringify(jsonData) != '{}') {
-            console.log('entra');
-        const newRows: GridData[] = Object.entries( jsonData )
-            .filter( ( [ company, data ] ) => {
-                // Filtramos primero para excluir registros con compraARS, ventaARS, compraUSD, ventaUSD, volumenNominalARS y volumenNominalUSD igual a 0
-                const companyData = data as CompanyData[];
-                if (companyData.find((d) => d.moneda === '1')?.puntas === null || companyData.find((d) => d.moneda === '2')?.puntas === null) {
-                    return (companyData.find((d) => d.moneda === '1')?.puntas !== null && companyData.find((d) => d.moneda === '2')?.puntas !== null);
-                } else{
-                const volumenNominalARS   = companyData.find((d) => d.moneda === '1')?.volumen || 0;
-                const volumenNominalUSD   = companyData.find((d) => d.moneda === '2')?.volumen || 0;
-                const compraARS           = companyData.find((d) => d.moneda === '1')?.puntas.precioCompra || 0;
-                const ventaARS            = companyData.find((d) => d.moneda === '1')?.puntas.precioVenta  || 0;
-                const compraUSD           = companyData.find((d) => d.moneda === '2')?.puntas.precioCompra || 0;
-                const ventaUSD            = companyData.find((d) => d.moneda === '2')?.puntas.precioVenta  || 0;
-                return (compraARS !== 0 && ventaARS !== 0 && compraUSD !== 0 && ventaUSD !== 0 && volumenNominalARS !== 0 && volumenNominalUSD !== 0);
-                }
-            })
-            .map( ( [ company, data ], index ) => {
-                const companyData         = data as CompanyData[];
-                const tickerARS           = companyData.find((d) => d.moneda === '1')?.simbolo || '';
-                const tickerUSD           = companyData.find((d) => d.moneda === '2')?.simbolo || '';
-                const volumenNominalARS   = companyData.find((d) => d.moneda === '1')?.volumen || 0;
-                const volumenNominalUSD   = companyData.find((d) => d.moneda === '2')?.volumen || 0;
-                const ultimoPrecioARS     = companyData.find((d) => d.moneda === '1')?.ultimoPrecio || 0;
-                const ultimoPrecioUSD     = companyData.find((d) => d.moneda === '2')?.ultimoPrecio || 0;
-                const volumenARS          = Math.trunc(volumenNominalARS * ultimoPrecioARS);
-                const volumenUSD          = Math.trunc(volumenNominalUSD * ultimoPrecioUSD);
-                const cantCompraARS       = companyData.find((d) => d.moneda === '1')?.puntas.cantidadCompra || 0;
-                const compraARS           = companyData.find((d) => d.moneda === '1')?.puntas.precioCompra || 0;
-                const cantVentaARS        = companyData.find((d) => d.moneda === '1')?.puntas.cantidadVenta || 0;
-                const ventaARS            = companyData.find((d) => d.moneda === '1')?.puntas.precioVenta  || 0;
-                const cantCompraUSD       = companyData.find((d) => d.moneda === '2')?.puntas.cantidadCompra || 0;
-                const compraUSD           = companyData.find((d) => d.moneda === '2')?.puntas.precioCompra || 0;
-                const cantVentaUSD        = companyData.find((d) => d.moneda === '2')?.puntas.cantidadVenta || 0;
-                const ventaUSD            = companyData.find((d) => d.moneda === '2')?.puntas.precioVenta  || 0;
-                const tcCompra            = +(ventaARS / compraUSD).toFixed(2);
-                const tcVenta             = +(compraARS / ventaUSD).toFixed(2);
-                const tcCompraARS         = +(compraARS / compraUSD).toFixed(2);
-                const compraARScant       = '(' + cantCompraARS + ') ' + compraARS.toString();
-                const ventaARScant        = '(' + cantVentaARS + ') '  + ventaARS.toString();
-                const compraUSDcant       = '(' + cantCompraUSD + ') ' + compraUSD.toString();
-                const ventaUSDcant        = '(' + cantVentaUSD + ') '  + ventaUSD.toString();
-                const rentabilidad        = '';
-                const rentabilidadMax     = +((( ( tcCompraARS / tcCompra) - 1 ) * 100).toFixed(2)).toString() + '%';
-
-                if (tcVenta > maxTCVenta) {
-                    setMaxTCVenta(tcVenta);
-                }
-      
-                return {
-                    id: index,
-                    instrumento: companyData[0].tipo,
-                    empresa: company,
-                    tickerARS,
-                    tickerUSD,
-                    volumenARS,
-                    volumenUSD,
-                    compraARScant,//compraARS,
-                    ventaARScant,//ventaARS,
-                    compraUSDcant,//compraUSD,
-                    ventaUSDcant,//ventaUSD,
-                    tcCompra,
-                    tcVenta,
-                    tcCompraARS,
-                    rentabilidad,
-                    rentabilidadMax
-                };
-            });
+            const newRows: GridData[] = Object.entries( jsonData )
+                .filter( ( [ company, data ] ) => {
+                    // Filtramos primero para excluir registros con compraARS, ventaARS, compraUSD, ventaUSD, volumenNominalARS y volumenNominalUSD igual a 0
+                    const companyData = data as CompanyData[];
+                    if (companyData.find((d) => d.moneda === '1')?.puntas === null || companyData.find((d) => d.moneda === '2')?.puntas === null) {
+                        return (companyData.find((d) => d.moneda === '1')?.puntas !== null && companyData.find((d) => d.moneda === '2')?.puntas !== null);
+                    } else{
+                    const volumenNominalARS   = companyData.find((d) => d.moneda === '1')?.volumen || 0;
+                    const volumenNominalUSD   = companyData.find((d) => d.moneda === '2')?.volumen || 0;
+                    const compraARS           = companyData.find((d) => d.moneda === '1')?.puntas.precioCompra || 0;
+                    const ventaARS            = companyData.find((d) => d.moneda === '1')?.puntas.precioVenta  || 0;
+                    const compraUSD           = companyData.find((d) => d.moneda === '2')?.puntas.precioCompra || 0;
+                    const ventaUSD            = companyData.find((d) => d.moneda === '2')?.puntas.precioVenta  || 0;
+                    return (compraARS !== 0 && ventaARS !== 0 && compraUSD !== 0 && ventaUSD !== 0 && volumenNominalARS !== 0 && volumenNominalUSD !== 0);
+                    }
+                })
+                .map( ( [ company, data ], index ) => {
+                    const companyData         = data as CompanyData[];
+                    const tickerARS           = companyData.find((d) => d.moneda === '1')?.simbolo || '';
+                    const tickerUSD           = companyData.find((d) => d.moneda === '2')?.simbolo || '';
+                    const volumenNominalARS   = companyData.find((d) => d.moneda === '1')?.volumen || 0;
+                    const volumenNominalUSD   = companyData.find((d) => d.moneda === '2')?.volumen || 0;
+                    const ultimoPrecioARS     = companyData.find((d) => d.moneda === '1')?.ultimoPrecio || 0;
+                    const ultimoPrecioUSD     = companyData.find((d) => d.moneda === '2')?.ultimoPrecio || 0;
+                    const volumenARS          = Math.trunc(volumenNominalARS * ultimoPrecioARS);
+                    const volumenUSD          = Math.trunc(volumenNominalUSD * ultimoPrecioUSD);
+                    const cantCompraARS       = companyData.find((d) => d.moneda === '1')?.puntas.cantidadCompra || 0;
+                    const compraARS           = companyData.find((d) => d.moneda === '1')?.puntas.precioCompra || 0;
+                    const cantVentaARS        = companyData.find((d) => d.moneda === '1')?.puntas.cantidadVenta || 0;
+                    const ventaARS            = companyData.find((d) => d.moneda === '1')?.puntas.precioVenta  || 0;
+                    const cantCompraUSD       = companyData.find((d) => d.moneda === '2')?.puntas.cantidadCompra || 0;
+                    const compraUSD           = companyData.find((d) => d.moneda === '2')?.puntas.precioCompra || 0;
+                    const cantVentaUSD        = companyData.find((d) => d.moneda === '2')?.puntas.cantidadVenta || 0;
+                    const ventaUSD            = companyData.find((d) => d.moneda === '2')?.puntas.precioVenta  || 0;
+                    const tcCompra            = +(ventaARS / compraUSD).toFixed(2);
+                    const tcVenta             = +(compraARS / ventaUSD).toFixed(2);
+                    const tcCompraARS         = +(compraARS / compraUSD).toFixed(2);
+                    const compraARScant       = '(' + cantCompraARS + ') ' + compraARS.toString();
+                    const ventaARScant        = '(' + cantVentaARS + ') '  + ventaARS.toString();
+                    const compraUSDcant       = '(' + cantCompraUSD + ') ' + compraUSD.toString();
+                    const ventaUSDcant        = '(' + cantVentaUSD + ') '  + ventaUSD.toString();
+                    const rentabilidad        = '';
+                    const rentabilidadMax     = +((( ( tcCompraARS / tcCompra) - 1 ) * 100).toFixed(2)).toString() + '%';
         
-            setRows(newRows);
- 
-            for (const elemento of newRows) {
-                //console.log('maxTCVenta: ' + maxTCVenta + ' - ' + elemento.empresa);
-                elemento.rentabilidad = +((( ( maxTCVenta / elemento.tcCompra) - 1 ) * 100).toFixed(2)).toString() + '%';
-                //elemento.rentabilidadMax = +((( ( maxTCVenta / elemento.tcCompraARS) - 1 ) * 100).toFixed(2)).toString() + '%';
-            }
-            console.log(maxTCVenta);
-            if (maxTCVenta !== 0) {
-                setIsLoading( false );
-            } 
+                    return {
+                        id: index,
+                        instrumento: companyData[0].tipo,
+                        empresa: company,
+                        tickerARS,
+                        tickerUSD,
+                        volumenARS,
+                        volumenUSD,
+                        compraARScant,//compraARS,
+                        ventaARScant,//ventaARS,
+                        compraUSDcant,//compraUSD,
+                        ventaUSDcant,//ventaUSD,
+                        tcCompra,
+                        tcVenta,
+                        tcCompraARS,
+                        rentabilidad,
+                        rentabilidadMax
+                    };
+                });
+            
+                setRows(newRows);
+
+                // Obtengo el valor maximo del tipo de venta para calcular el rendimiento
+                const maxTCVenta = Math.max(...newRows.map(obj => obj.tcVenta));
+                setMaxTCVenta(maxTCVenta);
+
         }
     }, [
-        jsonData, maxTCVenta
+        jsonData
+    ]);
+
+    useEffect(() => {
+        if (maxTCVenta !== 0) {
+            for (const elemento of rows) {
+                elemento.rentabilidad = +((( ( maxTCVenta / elemento.tcCompra) - 1 ) * 100).toFixed(2)).toString() + '%';
+            }         
+            // Saco el spinner
+            setIsLoading( false );
+        } 
+    }, [
+        maxTCVenta
     ]);
 
     return (
@@ -210,6 +213,8 @@ export default function IolCotizaciones() {
             <br/>
             <br/>
             <h1>Cotizaciones IOL</h1>
+            <Operaciones ventaProp = { rowVenta } compraProp = { rowCompra } />
+            <br/>
             {/* Card Compra Rapida */}
             <Card 
                 elevation={3}
@@ -225,7 +230,7 @@ export default function IolCotizaciones() {
                     titleTypographyProps={{ variant: 'h4', fontSize: 16 }}
                     title = "COMPRA RÁPIDA"
                     subheaderTypographyProps={{ variant: 'h6', fontSize: 12 }}
-                    //subheader = "Mejores cotizaciones de compra"
+                    subheader = "Mejores cotizaciones de compra"
                     sx= {{ 
                         paddingTop:'8px',
                         paddingLeft: '18px',
@@ -249,7 +254,8 @@ export default function IolCotizaciones() {
                         rows = { rows }
                         columns = { columns }
                         onRowSelectionModelChange={(ids) => {
-                            const selectedRowsData = ids.map((id) => rows.find((row) => row.id === id));
+                            const selectedRowsData = (ids.map((id) => rows.find((row) => row.id === id)))[0];
+                            //console.log(selectedRowsData);
                             setRowCompra(selectedRowsData);
                             //console.log(selectedRowsData);
                             //console.log( { newRows[ids] } );
@@ -363,6 +369,19 @@ export default function IolCotizaciones() {
                         sort: 'desc', // Orden descendente
                         },
                         ] }
+                        onRowSelectionModelChange={(ids) => {
+                            const selectedRowsData = ids.map((id) => rows.find((row) => row.id === id));
+                            //console.log(ids);
+                            //console.log( { newRows.find((registro) => registro.id === ids) } );
+                            setRowVenta(selectedRowsData[0]);
+                            //console.log(selectedRowsData);
+                            //console.log( { newRows[ids] } );
+                            /*const selectedIDs = new Set(ids);
+                            const selectedRowData = rows.filter((row) =>
+                              selectedIDs.has(row.id.toString())
+                            );
+                            console.log(selectedRowData);*/
+                          }}
                         //sx = { {
                         //    '& .MuiDataGrid-cell': {
                         //    fontSize: '0.875rem', // Tamaño de fuente más pequeño
@@ -446,8 +465,9 @@ export default function IolCotizaciones() {
                             tcVenta: false,
                             rentabilidad: false,
                         }}
-                        onRowSelectionModelChange={(ids) => {
+                        /*onRowSelectionModelChange={(ids) => {
                             const selectedRowsData = ids.map((id) => rows.find((row) => row.id === id));
+                            console.log(selectedRowsData);
                             setRowVenta(selectedRowsData);
                             //console.log(selectedRowsData);
                             //console.log( { newRows[ids] } );
@@ -455,8 +475,8 @@ export default function IolCotizaciones() {
                             const selectedRowData = rows.filter((row) =>
                               selectedIDs.has(row.id.toString())
                             );
-                            console.log(selectedRowData);*/
-                          }}
+                            console.log(selectedRowData);
+                          }}*/
                         sortModel = { [
                         {
                         field: 'tcCompraARS',//'rentabilidadMax',
