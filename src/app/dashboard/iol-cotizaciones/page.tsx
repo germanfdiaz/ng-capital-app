@@ -15,39 +15,40 @@ import { CircularProgress } from '@mui/material';
 //import CardCotizaciones from './card-cotizaciones';
 import jsonDataFixed from './cotizaciones2.json';
 import Operaciones from './operaciones';
+import fn from '../../helper/formateadorNumero';
 
 
 
 export default function IolCotizaciones() {
 
     type CompanyData = {
-        simbolo: string;
+        simbolo:                        string;
         puntas: {
-                    cantidadCompra: number,
-                    precioCompra: number,
-                    precioVenta: number,
-                    cantidadVenta: number
+                    cantidadCompra:     number,
+                    precioCompra:       number,
+                    precioVenta:        number,
+                    cantidadVenta:      number
                 },
-        ultimoPrecio: number,
-        variacionPorcentual: number,
-        apertura: number,
-        maximo: number,
-        minimo: number,
-        ultimoCierre: number,
-        volumen: number,
-        cantidadOperaciones: number,
-        fecha: any,
-        tipoOpcion: any,
-        precioEjercicio: any,
-        fechaVencimiento: any,
-        mercado: string,
-        moneda: string,
-        descripcion: string,
-        plazo: string,
-        laminaMinima: number,
-        lote: number,
-        tipo: string
-        };
+        ultimoPrecio:                   number,
+        variacionPorcentual:            number,
+        apertura:                       number,
+        maximo:                         number,
+        minimo:                         number,
+        ultimoCierre:                   number,
+        volumen:                        number,
+        cantidadOperaciones:            number,
+        fecha:                          any,
+        tipoOpcion:                     any,
+        precioEjercicio:                any,
+        fechaVencimiento:               any,
+        mercado:                        string,
+        moneda:                         string,
+        descripcion:                    string,
+        plazo:                          string,
+        laminaMinima:                   number,
+        lote:                           number,
+        tipo:                           string
+    };
         
     type GridData = {
         id                  : number;
@@ -70,10 +71,28 @@ export default function IolCotizaciones() {
 
     const [ jsonData,   setjsonData ]   = useState({});
     const [ isLoading,  setIsLoading ]  = useState( true );
-    const [ rows,       setRows ]       = useState<GridData[]>([]);
+    const [ rows,       setRows ]       = useState<GridData[]>([]); //useState<GridData[]>([]);
     const [ maxTCVenta, setMaxTCVenta ] = useState<number>(0);
-    const [ rowCompra,  setRowCompra ]  = useState({});
-    const [ rowVenta,   setRowVenta ]   = useState({});
+    const [ rowCompra,  setRowCompra ]  = useState<GridData[]>([]);
+    /*([{
+        id: 0,
+        instrumento: '',
+        empresa: '',
+        tickerARS: '',
+        tickerUSD: '',
+        volumenARS: 0,
+        volumenUSD: 0,
+        compraARScant: '',
+        ventaARScant: '',
+        compraUSDcant: '',
+        ventaUSDcant: '',
+        tcCompra: 0,
+        tcVenta: 0,
+        tcCompraARS: 0,
+        rentabilidad: '',
+        rentabilidadMax: '',
+      }]); //useState({});*/
+    const [ rowVenta,   setRowVenta ]   = useState<GridData[]>([]); //useState({});
     
    
     //setjsonData( resData );
@@ -213,7 +232,7 @@ export default function IolCotizaciones() {
             <br/>
             <br/>
             <h1>Cotizaciones IOL</h1>
-            <Operaciones ventaProp = { rowVenta } compraProp = { rowCompra } />
+             <Operaciones ventaProp = { rowVenta[0] } compraProp = { rowCompra[0] } />
             <br/>
             {/* Card Compra Rapida */}
             <Card 
@@ -254,9 +273,16 @@ export default function IolCotizaciones() {
                         rows = { rows }
                         columns = { columns }
                         onRowSelectionModelChange={(ids) => {
-                            const selectedRowsData = (ids.map((id) => rows.find((row) => row.id === id)))[0];
+                            // Es muy importante dejar el filter para que no traiga valores undefined
+                            const selectedRowsData : GridData[]  = (ids.map((id) => rows.find((row) => row.id === id)).filter(Boolean) as GridData[]);
+                            
+                            if (selectedRowsData) {
+                                setRowCompra(selectedRowsData);
+                            // } else {
+                            ///    setRowCompra([]);
+                            }
                             //console.log(selectedRowsData);
-                            setRowCompra(selectedRowsData);
+                            
                             //console.log(selectedRowsData);
                             //console.log( { newRows[ids] } );
                             /*const selectedIDs = new Set(ids);
@@ -370,10 +396,10 @@ export default function IolCotizaciones() {
                         },
                         ] }
                         onRowSelectionModelChange={(ids) => {
-                            const selectedRowsData = ids.map((id) => rows.find((row) => row.id === id));
+                            const selectedRowsData = ids.map((id) => rows.find((row) => row.id === id)).filter(Boolean) as GridData[];
                             //console.log(ids);
                             //console.log( { newRows.find((registro) => registro.id === ids) } );
-                            setRowVenta(selectedRowsData[0]);
+                            setRowVenta(selectedRowsData);
                             //console.log(selectedRowsData);
                             //console.log( { newRows[ids] } );
                             /*const selectedIDs = new Set(ids);
